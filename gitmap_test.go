@@ -23,7 +23,7 @@ func TestMap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if gm, err = gitmap.Map(repository, "37e91d4"); err != nil {
+	if gm, err = gitmap.Map(repository, "9d1dc47"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -33,8 +33,8 @@ func TestMap(t *testing.T) {
 
 	assertFile(t, gm,
 		"testfiles/d1/d1.txt",
-		"37e91d4",
-		"37e91d49494bd894e4086565d2c3ab8c6351820e",
+		"9d1dc47",
+		"9d1dc478eef267829831226d913a3ca249c489d4",
 	)
 
 	assertFile(t, gm,
