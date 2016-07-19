@@ -6,10 +6,18 @@
 package gitmap
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
 	"time"
+)
+
+var (
+	// will be modified during tests
+	gitExec string
+
+	GitNotFound = errors.New("Git executable not found in $PATH")
 )
 
 // GitMap maps filenames to Git revision information.
@@ -36,9 +44,15 @@ func Map(repository, revision string) (GitMap, error) {
 		revision,
 	)
 
-	out, err := exec.Command("git", strings.Fields(gitLogArgs)...).Output()
+	out, err := exec.Command(gitExec, strings.Fields(gitLogArgs)...).Output()
 
 	if err != nil {
+		if ee, ok := err.(*exec.Error); ok {
+			if ee.Err == exec.ErrNotFound {
+				return nil, GitNotFound
+			}
+		}
+
 		return nil, err
 	}
 
@@ -82,4 +96,12 @@ func toGitInfo(entry string) (*GitInfo, error) {
 		AuthorEmail:     items[4],
 		AuthorDate:      authorDate,
 	}, nil
+}
+
+func init() {
+	initDefaults()
+}
+
+func initDefaults() {
+	gitExec = "git"
 }

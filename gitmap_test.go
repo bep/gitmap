@@ -3,27 +3,32 @@
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
 
-package gitmap_test
+package gitmap
 
 import (
 	"os"
 	"testing"
-
-	"github.com/bep/gitmap"
 )
+
+var (
+	revision   = "9d1dc47"
+	repository string
+)
+
+func init() {
+	var err error
+	if repository, err = os.Getwd(); err != nil {
+		panic(err)
+	}
+}
 
 func TestMap(t *testing.T) {
 	var (
-		repository string
-		gm         gitmap.GitMap
-		err        error
+		gm  GitMap
+		err error
 	)
 
-	if repository, err = os.Getwd(); err != nil {
-		t.Fatal(err)
-	}
-
-	if gm, err = gitmap.Map(repository, "9d1dc47"); err != nil {
+	if gm, err = Map(repository, revision); err != nil {
 		t.Fatal(err)
 	}
 
@@ -46,13 +51,13 @@ func TestMap(t *testing.T) {
 
 func assertFile(
 	t *testing.T,
-	gm gitmap.GitMap,
+	gm GitMap,
 	filename,
 	expectedAbbreviatedHash,
 	expectedHash string) {
 
 	var (
-		gi *gitmap.GitInfo
+		gi *GitInfo
 		ok bool
 	)
 
@@ -70,5 +75,34 @@ func assertFile(
 
 	if gi.AuthorDate.Format("2006-01-02") != "2016-07-19" {
 		t.Error("Invalid date:", gi.AuthorDate)
+	}
+}
+
+func TestGitExecutableNotFound(t *testing.T) {
+	defer initDefaults()
+	gitExec = "thisShouldHopefullyNotExistOnPath"
+	gi, err := Map(repository, revision)
+
+	if err != GitNotFound || gi != nil {
+		t.Fatal("Invalid error handling")
+	}
+
+}
+
+func TestGitRevisionNotFound(t *testing.T) {
+	gi, err := Map(repository, "adfasdfasdf")
+
+	// TODO(bep) improve error handling.
+	if err == nil || gi != nil {
+		t.Fatal("Invalid error handling", err)
+	}
+}
+
+func TestGitRepoNotFound(t *testing.T) {
+	gi, err := Map("adfasdfasdf", revision)
+
+	// TODO(bep) improve error handling.
+	if err == nil || gi != nil {
+		t.Fatal("Invalid error handling", err)
 	}
 }
