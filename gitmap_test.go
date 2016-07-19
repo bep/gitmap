@@ -48,8 +48,8 @@ func assertFile(
 	t *testing.T,
 	gm gitmap.GitMap,
 	filename,
-	expectedAbbreviatedTreeHash,
-	expectedTreeHash string) {
+	expectedAbbreviatedHash,
+	expectedHash string) {
 
 	var (
 		gi *gitmap.GitInfo
@@ -60,11 +60,15 @@ func assertFile(
 		t.Fatalf(filename)
 	}
 
-	if gi.AbbreviatedHash != expectedAbbreviatedTreeHash || gi.Hash != expectedTreeHash {
+	if gi.AbbreviatedHash != expectedAbbreviatedHash || gi.Hash != expectedHash {
 		t.Error("Invalid tree hash, file", filename, "abbreviated:", gi.AbbreviatedHash, "full:", gi.Hash, gi.Subject)
 	}
 
 	if gi.AuthorName != "Bjørn Erik Pedersen" || gi.AuthorEmail != "bjorn.erik.pedersen@gmail.com" {
 		t.Error("These commits are mine! Got", gi.AuthorName, "and", gi.AuthorEmail)
+	}
+
+	if gi.AuthorDate.Format("2006-01-02") != "2016-07-19" {
+		t.Error("Invalid date:", gi.AuthorDate)
 	}
 }
