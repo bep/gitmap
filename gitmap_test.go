@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	revision   = "9d1dc47"
+	revision   = "4d9ad733fa40310607ebe9f700d59dcac93ace89"
 	repository string
 )
 
@@ -33,20 +33,29 @@ func TestMap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(gm) != 8 {
-		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 8)
+	if len(gm) != 9 {
+		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 9)
 	}
 
 	assertFile(t, gm,
 		"testfiles/d1/d1.txt",
+		"4d9ad73",
+		"4d9ad733fa40310607ebe9f700d59dcac93ace89",
+		"2016-07-20",
+	)
+
+	assertFile(t, gm,
+		"testfiles/d2/d2.txt",
 		"9d1dc47",
 		"9d1dc478eef267829831226d913a3ca249c489d4",
+		"2016-07-19",
 	)
 
 	assertFile(t, gm,
 		"README.md",
-		"527cb5d",
-		"527cb5db32c76a269e444bb0de4cc22b574f0366",
+		"866cbcc",
+		"866cbccdab588b9908887ffd3b4f2667e94090c3",
+		"2016-07-20",
 	)
 }
 
@@ -55,7 +64,8 @@ func assertFile(
 	gm GitMap,
 	filename,
 	expectedAbbreviatedHash,
-	expectedHash string) {
+	expectedHash,
+	expectedDate string) {
 
 	var (
 		gi *GitInfo
@@ -74,7 +84,7 @@ func assertFile(
 		t.Error("These commits are mine! Got", gi.AuthorName, "and", gi.AuthorEmail)
 	}
 
-	if gi.AuthorDate.Format("2006-01-02") != "2016-07-19" {
+	if gi.AuthorDate.Format("2006-01-02") != expectedDate {
 		t.Error("Invalid date:", gi.AuthorDate)
 	}
 }
@@ -115,7 +125,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	s := string(b)
 
-	if s != `{"hash":"527cb5db32c76a269e444bb0de4cc22b574f0366","abbreviatedHash":"527cb5d","subject":"Create README.md","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-19T21:21:03+02:00"}` {
+	if s != `{"hash":"866cbccdab588b9908887ffd3b4f2667e94090c3","abbreviatedHash":"866cbcc","subject":"Add codecov to Travis config","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T02:22:23+02:00"}` {
 		t.Errorf("JSON marshal error: \n%s", s)
 	}
 }
