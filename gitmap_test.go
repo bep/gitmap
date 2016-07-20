@@ -170,3 +170,12 @@ func TestGitRepoNotFound(t *testing.T) {
 		t.Fatal("Invalid error handling", err)
 	}
 }
+
+func BenchmarkMap(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_, err := Map(repository, revision)
+		if err != nil {
+			b.Fatalf("Got error: %s", err)
+		}
+	}
+}
