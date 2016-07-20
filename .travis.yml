@@ -7,7 +7,8 @@ os:
   - linux
   - osx
 script:
-  - go test ./...
-  - go build
+  - go test -coverprofile=coverage.txt -covermode=atomic
 install:
   - go get -v ./...
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
