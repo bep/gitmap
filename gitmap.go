@@ -39,7 +39,7 @@ func Map(repository, revision string) (GitMap, error) {
 	m := make(GitMap)
 
 	gitLogArgs := fmt.Sprintf(
-		"-C %s log --name-only --no-merges --reverse --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s",
+		"-C %s log --name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s",
 		repository,
 		revision,
 	)
@@ -73,7 +73,9 @@ func Map(repository, revision string) (GitMap, error) {
 			if filename == "" {
 				continue
 			}
-			m[filename] = gitInfo
+			if _, ok := m[filename]; !ok {
+				m[filename] = gitInfo
+			}
 		}
 	}
 

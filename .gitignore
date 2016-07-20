@@ -24,3 +24,4 @@ _testmain.go
 *.prof
 cover.out
 bench.txt
+bench2.txt
