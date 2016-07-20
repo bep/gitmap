@@ -34,7 +34,7 @@ type GitInfo struct {
 }
 
 // Map creates a GitMap from the given repository path and revision.
-// Use HEAD as revision for the latest.
+// Use blank or HEAD as revision for the currently active revision.
 func Map(repository, revision string) (GitMap, error) {
 	m := make(GitMap)
 

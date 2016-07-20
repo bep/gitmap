@@ -89,6 +89,29 @@ func assertFile(
 	}
 }
 
+func TestActiveRevision(t *testing.T) {
+	var (
+		gm  GitMap
+		err error
+	)
+
+	if gm, err = Map(repository, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(gm) < 10 {
+		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
+	}
+
+	if gm, err = Map(repository, "HEAD"); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(gm) < 10 {
+		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
+	}
+}
+
 func TestGitExecutableNotFound(t *testing.T) {
 	defer initDefaults()
 	gitExec = "thisShouldHopefullyNotExistOnPath"
