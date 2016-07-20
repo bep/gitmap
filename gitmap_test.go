@@ -6,6 +6,7 @@
 package gitmap
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 )
@@ -62,7 +63,7 @@ func assertFile(
 	)
 
 	if gi, ok = gm[filename]; !ok {
-		t.Fatalf(filename)
+		t.Fatal(filename)
 	}
 
 	if gi.AbbreviatedHash != expectedAbbreviatedHash || gi.Hash != expectedHash {
@@ -87,6 +88,36 @@ func TestGitExecutableNotFound(t *testing.T) {
 		t.Fatal("Invalid error handling")
 	}
 
+}
+
+func TestEncodeJSON(t *testing.T) {
+	var (
+		gm       GitMap
+		gi       *GitInfo
+		err      error
+		ok       bool
+		filename = "README.md"
+	)
+
+	if gm, err = Map(repository, revision); err != nil {
+		t.Fatal(err)
+	}
+
+	if gi, ok = gm[filename]; !ok {
+		t.Fatal(filename)
+	}
+
+	b, err := json.Marshal(&gi)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s := string(b)
+
+	if s != `{"hash":"527cb5db32c76a269e444bb0de4cc22b574f0366","abbreviatedHash":"527cb5d","subject":"Create README.md","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-19T21:21:03+02:00"}` {
+		t.Errorf("JSON marshal error: \n%s", s)
+	}
 }
 
 func TestGitRevisionNotFound(t *testing.T) {

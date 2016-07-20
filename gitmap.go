@@ -25,12 +25,12 @@ type GitMap map[string]*GitInfo
 
 // GitInfo holds information about a Git commit.
 type GitInfo struct {
-	Hash            string    // Commit hash
-	AbbreviatedHash string    // Abbreviated commit hash
-	Subject         string    // The commit message's subject/title line
-	AuthorName      string    // The author name, respecting .mailmap
-	AuthorEmail     string    // The author email address, respecting .mailmap
-	AuthorDate      time.Time // The author date
+	Hash            string    `json:"hash"`            // Commit hash
+	AbbreviatedHash string    `json:"abbreviatedHash"` // Abbreviated commit hash
+	Subject         string    `json:"subject"`         // The commit message's subject/title line
+	AuthorName      string    `json:"authorName"`      // The author name, respecting .mailmap
+	AuthorEmail     string    `json:"authorEmail"`     // The author email address, respecting .mailmap
+	AuthorDate      time.Time `json:"authorDate"`      // The author date
 }
 
 // Map creates a GitMap from the given repository path and revision.
