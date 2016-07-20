@@ -39,7 +39,7 @@ func Map(repository, revision string) (GitMap, error) {
 	m := make(GitMap)
 
 	gitLogArgs := fmt.Sprintf(
-		"-C %s log --name-only --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s",
+		"-C %s log --name-only --reverse --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s",
 		repository,
 		revision,
 	)
