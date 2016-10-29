@@ -8,6 +8,7 @@ package gitmap
 import (
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -26,12 +27,15 @@ func init() {
 func TestMap(t *testing.T) {
 	var (
 		gm  GitMap
+		gr  *GitRepo
 		err error
 	)
 
-	if gm, err = Map(repository, revision); err != nil {
+	if gr, err = Map(repository, revision); err != nil {
 		t.Fatal(err)
 	}
+
+	gm = gr.Files
 
 	if len(gm) != 9 {
 		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 9)
@@ -92,19 +96,18 @@ func assertFile(
 func TestActiveRevision(t *testing.T) {
 	var (
 		gm  GitMap
+		gr  *GitRepo
 		err error
 	)
 
-	if gm, err = Map(repository, ""); err != nil {
+	if gr, err = Map(repository, "HEAD"); err != nil {
 		t.Fatal(err)
 	}
+
+	gm = gr.Files
 
 	if len(gm) < 10 {
 		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
-	}
-
-	if gm, err = Map(repository, "HEAD"); err != nil {
-		t.Fatal(err)
 	}
 
 	if len(gm) < 10 {
@@ -126,15 +129,18 @@ func TestGitExecutableNotFound(t *testing.T) {
 func TestEncodeJSON(t *testing.T) {
 	var (
 		gm       GitMap
+		gr       *GitRepo
 		gi       *GitInfo
 		err      error
 		ok       bool
 		filename = "README.md"
 	)
 
-	if gm, err = Map(repository, revision); err != nil {
+	if gr, err = Map(repository, revision); err != nil {
 		t.Fatal(err)
 	}
+
+	gm = gr.Files
 
 	if gi, ok = gm[filename]; !ok {
 		t.Fatal(filename)
@@ -168,6 +174,23 @@ func TestGitRepoNotFound(t *testing.T) {
 	// TODO(bep) improve error handling.
 	if err == nil || gi != nil {
 		t.Fatal("Invalid error handling", err)
+	}
+}
+
+func TestTopLevelAbsPath(t *testing.T) {
+	var (
+		gr  *GitRepo
+		err error
+	)
+
+	if gr, err = Map(repository, revision); err != nil {
+		t.Fatal(err)
+	}
+
+	expected := "github.com/bep/gitmap"
+
+	if !strings.HasSuffix(gr.TopLevelAbsPath, expected) {
+		t.Fatalf("Expected to end with %q got %q", expected, gr.TopLevelAbsPath)
 	}
 }
 

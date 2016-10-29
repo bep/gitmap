@@ -20,6 +20,17 @@ var (
 	GitNotFound = errors.New("Git executable not found in $PATH")
 )
 
+type GitRepo struct {
+	// TopLevelAbsPath contains the absolute path of the top-level directory.
+	// This is the answer from "git rev-parse --show-toplevel"
+	// Note that this follows Git's way of handling paths, so expect to get forward slashes,
+	// even on Windows.
+	TopLevelAbsPath string
+
+	// The files in this Git repository.
+	Files GitMap
+}
+
 // GitMap maps filenames to Git revision information.
 type GitMap map[string]*GitInfo
 
@@ -33,10 +44,19 @@ type GitInfo struct {
 	AuthorDate      time.Time `json:"authorDate"`      // The author date
 }
 
-// Map creates a GitMap from the given repository path and revision.
+// Map creates a GitRepo with a file map from the given repository path and revision.
 // Use blank or HEAD as revision for the currently active revision.
-func Map(repository, revision string) (GitMap, error) {
+func Map(repository, revision string) (*GitRepo, error) {
 	m := make(GitMap)
+
+	// First get the top level repo path
+	out, err := git("-C", repository, "rev-parse", "--show-toplevel")
+
+	if err != nil {
+		return nil, err
+	}
+
+	topLevelPath := strings.TrimSpace(string(out))
 
 	gitLogArgs := fmt.Sprintf(
 		"-C %s log --name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s",
@@ -44,15 +64,9 @@ func Map(repository, revision string) (GitMap, error) {
 		revision,
 	)
 
-	out, err := exec.Command(gitExec, strings.Fields(gitLogArgs)...).Output()
+	out, err = git(strings.Fields(gitLogArgs)...)
 
 	if err != nil {
-		if ee, ok := err.(*exec.Error); ok {
-			if ee.Err == exec.ErrNotFound {
-				return nil, GitNotFound
-			}
-		}
-
 		return nil, err
 	}
 
@@ -79,7 +93,23 @@ func Map(repository, revision string) (GitMap, error) {
 		}
 	}
 
-	return m, nil
+	return &GitRepo{Files: m, TopLevelAbsPath: topLevelPath}, nil
+}
+
+func git(args ...string) ([]byte, error) {
+	out, err := exec.Command(gitExec, args...).Output()
+
+	if err != nil {
+		if ee, ok := err.(*exec.Error); ok {
+			if ee.Err == exec.ErrNotFound {
+				return nil, GitNotFound
+			}
+		}
+
+		return nil, err
+	}
+
+	return out, nil
 }
 
 func toGitInfo(entry string) (*GitInfo, error) {
