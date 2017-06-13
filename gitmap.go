@@ -59,13 +59,14 @@ func Map(repository, revision string) (*GitRepo, error) {
 
 	topLevelPath := strings.TrimSpace(string(out))
 
-	gitLogArgs := fmt.Sprintf(
-		"-C %s log --name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s",
-		repository,
+	gitLogArgs := strings.Fields(fmt.Sprintf(
+		`--name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s`,
 		revision,
-	)
+	))
 
-	out, err = git(strings.Fields(gitLogArgs)...)
+	gitLogArgs = append([]string{"-C", repository, "log"}, gitLogArgs...)
+
+	out, err = git(gitLogArgs...)
 
 	if err != nil {
 		return nil, err
