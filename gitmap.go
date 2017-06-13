@@ -6,6 +6,7 @@
 package gitmap
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os/exec"
@@ -97,7 +98,7 @@ func Map(repository, revision string) (*GitRepo, error) {
 }
 
 func git(args ...string) ([]byte, error) {
-	out, err := exec.Command(gitExec, args...).Output()
+	out, err := exec.Command(gitExec, args...).CombinedOutput()
 
 	if err != nil {
 		if ee, ok := err.(*exec.Error); ok {
@@ -106,7 +107,7 @@ func git(args ...string) ([]byte, error) {
 			}
 		}
 
-		return nil, err
+		return nil, errors.New(string(bytes.TrimSpace(out)))
 	}
 
 	return out, nil
