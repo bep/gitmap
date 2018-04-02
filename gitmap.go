@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -23,7 +24,8 @@ var (
 
 type GitRepo struct {
 	// TopLevelAbsPath contains the absolute path of the top-level directory.
-	// This is the answer from "git rev-parse --show-toplevel"
+	// This is similar to the answer from "git rev-parse --show-toplevel"
+	// except symbolic link is not followed on non-Windows platforms.
 	// Note that this follows Git's way of handling paths, so expect to get forward slashes,
 	// even on Windows.
 	TopLevelAbsPath string
@@ -51,13 +53,20 @@ func Map(repository, revision string) (*GitRepo, error) {
 	m := make(GitMap)
 
 	// First get the top level repo path
-	out, err := git("-C", repository, "rev-parse", "--show-toplevel")
+	absRepoPath, err := filepath.Abs(repository)
 
 	if err != nil {
 		return nil, err
 	}
 
-	topLevelPath := strings.TrimSpace(string(out))
+	out, err := git("-C", repository, "rev-parse", "--show-cdup")
+
+	if err != nil {
+		return nil, err
+	}
+
+	cdUp := strings.TrimSpace(string(out))
+	topLevelPath := filepath.ToSlash(filepath.Join(absRepoPath, cdUp))
 
 	gitLogArgs := strings.Fields(fmt.Sprintf(
 		`--name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s`,
