@@ -154,7 +154,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	s := string(b)
 
-	if s != `{"hash":"866cbccdab588b9908887ffd3b4f2667e94090c3","abbreviatedHash":"866cbcc","subject":"Add codecov to Travis config","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T02:22:23+02:00"}` {
+	if s != `{"hash":"866cbccdab588b9908887ffd3b4f2667e94090c3","abbreviatedHash":"866cbcc","subject":"Add codecov to Travis config","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T02:22:23+02:00","commitDate":"2016-07-20T02:42:36+02:00"}` {
 		t.Errorf("JSON marshal error: \n%s", s)
 	}
 }

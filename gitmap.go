@@ -45,6 +45,7 @@ type GitInfo struct {
 	AuthorName      string    `json:"authorName"`      // The author name, respecting .mailmap
 	AuthorEmail     string    `json:"authorEmail"`     // The author email address, respecting .mailmap
 	AuthorDate      time.Time `json:"authorDate"`      // The author date
+	CommitDate      time.Time `json:"commitDate"`      // The commit date
 }
 
 // Map creates a GitRepo with a file map from the given repository path and revision.
@@ -69,7 +70,7 @@ func Map(repository, revision string) (*GitRepo, error) {
 	topLevelPath := filepath.ToSlash(filepath.Join(absRepoPath, cdUp))
 
 	gitLogArgs := strings.Fields(fmt.Sprintf(
-		`--name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai %s`,
+		`--name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai%%x1f%%ci %s`,
 		revision,
 	))
 
@@ -126,7 +127,10 @@ func git(args ...string) ([]byte, error) {
 func toGitInfo(entry string) (*GitInfo, error) {
 	items := strings.Split(entry, "\x1f")
 	authorDate, err := time.Parse("2006-01-02 15:04:05 -0700", items[5])
-
+	if err != nil {
+		return nil, err
+	}
+	commitDate, err := time.Parse("2006-01-02 15:04:05 -0700", items[6])
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +142,7 @@ func toGitInfo(entry string) (*GitInfo, error) {
 		AuthorName:      items[3],
 		AuthorEmail:     items[4],
 		AuthorDate:      authorDate,
+		CommitDate:      commitDate,
 	}, nil
 }
 
