@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	revision   = "4d9ad733fa40310607ebe9f700d59dcac93ace89"
+	revision   = "e7c73e5e4b576d4c6d47c382e93ddf26b935e229"
 	repository string
 )
 
@@ -37,29 +37,40 @@ func TestMap(t *testing.T) {
 
 	gm = gr.Files
 
-	if len(gm) != 9 {
+	if len(gm) != 11 {
 		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 9)
 	}
 
 	assertFile(t, gm,
 		"testfiles/d1/d1.txt",
-		"4d9ad73",
-		"4d9ad733fa40310607ebe9f700d59dcac93ace89",
+		"39120eb",
+		"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
+		"2016-07-20",
 		"2016-07-20",
 	)
 
 	assertFile(t, gm,
 		"testfiles/d2/d2.txt",
-		"9d1dc47",
-		"9d1dc478eef267829831226d913a3ca249c489d4",
-		"2016-07-19",
+		"39120eb",
+		"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
+		"2016-07-20",
+		"2016-07-20",
+	)
+
+	assertFile(t, gm,
+		"testfiles/amended.txt",
+		"e7c73e5",
+		"e7c73e5e4b576d4c6d47c382e93ddf26b935e229",
+		"2019-05-23",
+		"2019-05-25",
 	)
 
 	assertFile(t, gm,
 		"README.md",
-		"866cbcc",
-		"866cbccdab588b9908887ffd3b4f2667e94090c3",
-		"2016-07-20",
+		"0b830e4",
+		"0b830e458446fdb774b1688af9b402acf388d6ab",
+		"2016-07-22",
+		"2016-07-22",
 	)
 }
 
@@ -69,7 +80,8 @@ func assertFile(
 	filename,
 	expectedAbbreviatedHash,
 	expectedHash,
-	expectedDate string) {
+	expectedAuthorDate,
+	expectedCommitDate string) {
 
 	var (
 		gi *GitInfo
@@ -84,12 +96,20 @@ func assertFile(
 		t.Error("Invalid tree hash, file", filename, "abbreviated:", gi.AbbreviatedHash, "full:", gi.Hash, gi.Subject)
 	}
 
-	if gi.AuthorName != "Bjørn Erik Pedersen" || gi.AuthorEmail != "bjorn.erik.pedersen@gmail.com" {
+	if gi.AuthorName != "Bjørn Erik Pedersen" && gi.AuthorName != "Michael Stapelberg" {
 		t.Error("These commits are mine! Got", gi.AuthorName, "and", gi.AuthorEmail)
 	}
 
-	if gi.AuthorDate.Format("2006-01-02") != expectedDate {
-		t.Error("Invalid date:", gi.AuthorDate)
+	if gi.AuthorEmail != "bjorn.erik.pedersen@gmail.com" && gi.AuthorEmail != "stapelberg@google.com" {
+		t.Error("These commits are mine! Got", gi.AuthorName, "and", gi.AuthorEmail)
+	}
+
+	if got, want := gi.AuthorDate.Format("2006-01-02"), expectedAuthorDate; got != want {
+		t.Errorf("%s: unexpected author date: got %v, want %v", filename, got, want)
+	}
+
+	if got, want := gi.CommitDate.Format("2006-01-02"), expectedCommitDate; got != want {
+		t.Errorf("%s: unexpected commit date: got %v, want %v", filename, got, want)
 	}
 }
 
@@ -154,7 +174,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	s := string(b)
 
-	if s != `{"hash":"866cbccdab588b9908887ffd3b4f2667e94090c3","abbreviatedHash":"866cbcc","subject":"Add codecov to Travis config","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T02:22:23+02:00","commitDate":"2016-07-20T02:42:36+02:00"}` {
+	if s != `{"hash":"0b830e458446fdb774b1688af9b402acf388d6ab","abbreviatedHash":"0b830e4","subject":"Add some more to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-22T21:40:27+02:00","commitDate":"2016-07-22T21:40:27+02:00"}` {
 		t.Errorf("JSON marshal error: \n%s", s)
 	}
 }
