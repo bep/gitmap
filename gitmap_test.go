@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	revision   = "e7c73e5e4b576d4c6d47c382e93ddf26b935e229"
+	revision   = "7d46b653c9674510d808815c4c92c7dc10bedc16"
 	repository string
 )
 
@@ -59,8 +59,8 @@ func TestMap(t *testing.T) {
 
 	assertFile(t, gm,
 		"testfiles/amended.txt",
-		"e7c73e5",
-		"e7c73e5e4b576d4c6d47c382e93ddf26b935e229",
+		"7d46b65",
+		"7d46b653c9674510d808815c4c92c7dc10bedc16",
 		"2019-05-23",
 		"2019-05-25",
 	)
@@ -207,7 +207,7 @@ func TestTopLevelAbsPath(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := "github.com/bep/gitmap"
+	expected := "/bep/gitmap"
 
 	if !strings.HasSuffix(gr.TopLevelAbsPath, expected) {
 		t.Fatalf("Expected to end with %q got %q", expected, gr.TopLevelAbsPath)
