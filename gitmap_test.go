@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	revision   = "57701f7ce5817fb9886c95c98a22d8c7dbb39119"
+	revision   = "45938ec0e55c26cd0e949f6de77abc210255926c"
 	repository string
 )
 
@@ -37,8 +37,8 @@ func TestMap(t *testing.T) {
 
 	gm = gr.Files
 
-	if len(gm) != 12 {
-		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 12)
+	if len(gm) != 13 {
+		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 13)
 	}
 
 	assertFile(t, gm,
@@ -75,8 +75,8 @@ func TestMap(t *testing.T) {
 
 	assertFile(t, gm,
 		"testfiles/emoji📚.txt",
-		"57701f7",
-		"57701f7ce5817fb9886c95c98a22d8c7dbb39119",
+		"45938ec",
+		"45938ec0e55c26cd0e949f6de77abc210255926c",
 		"2022-04-22",
 		"2022-04-22",
 	)
