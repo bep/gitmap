@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	revision   = "7d46b653c9674510d808815c4c92c7dc10bedc16"
+	revision   = "0930165bc16ed84ee1ebbed59b621e71ba3189a2"
 	repository string
 )
 
@@ -37,8 +37,8 @@ func TestMap(t *testing.T) {
 
 	gm = gr.Files
 
-	if len(gm) != 11 {
-		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 9)
+	if len(gm) != 13 { // DO NOT MERGE, go.mod might not be desirable
+		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 13)
 	}
 
 	assertFile(t, gm,
@@ -72,6 +72,15 @@ func TestMap(t *testing.T) {
 		"2016-07-22",
 		"2016-07-22",
 	)
+
+	assertFile(t, gm,
+		"testfiles/emoji📚.txt",
+		"39120eb",
+		"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
+		"2016-07-20",
+		"2016-07-20",
+	)
+
 }
 
 func assertFile(
@@ -163,7 +172,7 @@ func TestEncodeJSON(t *testing.T) {
 	gm = gr.Files
 
 	if gi, ok = gm[filename]; !ok {
-		t.Fatal(filename)
+		t.Fatalf("%v not found in %v", filename, gm)
 	}
 
 	b, err := json.Marshal(&gi)
@@ -207,7 +216,7 @@ func TestTopLevelAbsPath(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := "/bep/gitmap"
+	expected := "/Users/juanalonso/files/juan/juan.al/gitmap-emojis" // DO NOT SUBMIT, revert this line
 
 	if !strings.HasSuffix(gr.TopLevelAbsPath, expected) {
 		t.Fatalf("Expected to end with %q got %q", expected, gr.TopLevelAbsPath)
