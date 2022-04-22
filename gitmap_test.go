@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	revision   = "7d46b653c9674510d808815c4c92c7dc10bedc16"
+	revision   = "088d0548e4ae02fad856efbfb8c312453d49db4c"
 	repository string
 )
 
@@ -37,8 +37,8 @@ func TestMap(t *testing.T) {
 
 	gm = gr.Files
 
-	if len(gm) != 11 {
-		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 9)
+	if len(gm) != 12 {
+		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 12)
 	}
 
 	assertFile(t, gm,
@@ -72,6 +72,15 @@ func TestMap(t *testing.T) {
 		"2016-07-22",
 		"2016-07-22",
 	)
+
+	assertFile(t, gm,
+		"testfiles/emoji📚.txt",
+		"39120eb",
+		"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
+		"2016-07-20",
+		"2016-07-20",
+	)
+
 }
 
 func assertFile(
@@ -125,10 +134,6 @@ func TestActiveRevision(t *testing.T) {
 	}
 
 	gm = gr.Files
-
-	if len(gm) < 10 {
-		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
-	}
 
 	if len(gm) < 10 {
 		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
