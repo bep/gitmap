@@ -74,7 +74,7 @@ func Map(repository, revision string) (*GitRepo, error) {
 		revision,
 	))
 
-	gitLogArgs = append([]string{"-c", "diff.renames=0", "-c", "core.quotepath=0", "-C", repository, "log"}, gitLogArgs...)
+	gitLogArgs = append([]string{"-c", "diff.renames=0", "-c", "log.showSignature=0", "-c", "core.quotepath=0", "-C", repository, "log"}, gitLogArgs...)
 	out, err = git(gitLogArgs...)
 
 	if err != nil {
