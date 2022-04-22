@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	revision   = "0930165bc16ed84ee1ebbed59b621e71ba3189a2"
+	revision   = "088d0548e4ae02fad856efbfb8c312453d49db4c"
 	repository string
 )
 
@@ -138,10 +138,6 @@ func TestActiveRevision(t *testing.T) {
 	if len(gm) < 10 {
 		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
 	}
-
-	if len(gm) < 10 {
-		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
-	}
 }
 
 func TestGitExecutableNotFound(t *testing.T) {
@@ -172,7 +168,7 @@ func TestEncodeJSON(t *testing.T) {
 	gm = gr.Files
 
 	if gi, ok = gm[filename]; !ok {
-		t.Fatalf("%v not found in %v", filename, gm)
+		t.Fatal(filename)
 	}
 
 	b, err := json.Marshal(&gi)
@@ -216,7 +212,7 @@ func TestTopLevelAbsPath(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected := "/Users/juanalonso/files/juan/juan.al/gitmap-emojis" // DO NOT SUBMIT, revert this line
+	expected := "/bep/gitmap"
 
 	if !strings.HasSuffix(gr.TopLevelAbsPath, expected) {
 		t.Fatalf("Expected to end with %q got %q", expected, gr.TopLevelAbsPath)
