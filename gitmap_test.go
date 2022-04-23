@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	revision   = "57701f7ce5817fb9886c95c98a22d8c7dbb39119"
+	revision   = "7d46b653c9674510d808815c4c92c7dc10bedc16"
 	repository string
 )
 
@@ -37,8 +37,8 @@ func TestMap(t *testing.T) {
 
 	gm = gr.Files
 
-	if len(gm) != 12 {
-		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 12)
+	if len(gm) != 11 {
+		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 9)
 	}
 
 	assertFile(t, gm,
@@ -72,15 +72,6 @@ func TestMap(t *testing.T) {
 		"2016-07-22",
 		"2016-07-22",
 	)
-
-	assertFile(t, gm,
-		"testfiles/emoji📚.txt",
-		"57701f7",
-		"57701f7ce5817fb9886c95c98a22d8c7dbb39119",
-		"2022-04-22",
-		"2022-04-22",
-	)
-
 }
 
 func assertFile(
@@ -105,11 +96,11 @@ func assertFile(
 		t.Error("Invalid tree hash, file", filename, "abbreviated:", gi.AbbreviatedHash, "full:", gi.Hash, gi.Subject)
 	}
 
-	if gi.AuthorName != "Bjørn Erik Pedersen" && gi.AuthorName != "Michael Stapelberg" && gi.AuthorName != "slnc" {
+	if gi.AuthorName != "Bjørn Erik Pedersen" && gi.AuthorName != "Michael Stapelberg" {
 		t.Error("These commits are mine! Got", gi.AuthorName, "and", gi.AuthorEmail)
 	}
 
-	if gi.AuthorEmail != "bjorn.erik.pedersen@gmail.com" && gi.AuthorEmail != "stapelberg@google.com" && gi.AuthorEmail != "juan@juanalonso.net" {
+	if gi.AuthorEmail != "bjorn.erik.pedersen@gmail.com" && gi.AuthorEmail != "stapelberg@google.com" {
 		t.Error("These commits are mine! Got", gi.AuthorName, "and", gi.AuthorEmail)
 	}
 
@@ -134,6 +125,10 @@ func TestActiveRevision(t *testing.T) {
 	}
 
 	gm = gr.Files
+
+	if len(gm) < 10 {
+		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
+	}
 
 	if len(gm) < 10 {
 		t.Fatalf("Wrong number of files, got %d, expected at least %d", len(gm), 10)
@@ -212,10 +207,7 @@ func TestTopLevelAbsPath(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expected, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
+	expected := "/bep/gitmap"
 
 	if !strings.HasSuffix(gr.TopLevelAbsPath, expected) {
 		t.Fatalf("Expected to end with %q got %q", expected, gr.TopLevelAbsPath)
