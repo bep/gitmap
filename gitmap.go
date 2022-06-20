@@ -55,13 +55,11 @@ func Map(repository, revision string) (*GitRepo, error) {
 
 	// First get the top level repo path
 	absRepoPath, err := filepath.Abs(repository)
-
 	if err != nil {
 		return nil, err
 	}
 
 	out, err := git("-C", repository, "rev-parse", "--show-cdup")
-
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +86,6 @@ func Map(repository, revision string) (*GitRepo, error) {
 	for _, e := range entries {
 		lines := strings.Split(e, "\n")
 		gitInfo, err := toGitInfo(lines[0])
-
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +106,6 @@ func Map(repository, revision string) (*GitRepo, error) {
 
 func git(args ...string) ([]byte, error) {
 	out, err := exec.Command(gitExec, args...).CombinedOutput()
-
 	if err != nil {
 		if ee, ok := err.(*exec.Error); ok {
 			if ee.Err == exec.ErrNotFound {

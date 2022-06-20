@@ -81,8 +81,8 @@ func assertFile(
 	expectedAbbreviatedHash,
 	expectedHash,
 	expectedAuthorDate,
-	expectedCommitDate string) {
-
+	expectedCommitDate string,
+) {
 	var (
 		gi *GitInfo
 		ok bool
@@ -143,7 +143,6 @@ func TestGitExecutableNotFound(t *testing.T) {
 	if err != GitNotFound || gi != nil {
 		t.Fatal("Invalid error handling")
 	}
-
 }
 
 func TestEncodeJSON(t *testing.T) {
@@ -167,7 +166,6 @@ func TestEncodeJSON(t *testing.T) {
 	}
 
 	b, err := json.Marshal(&gi)
-
 	if err != nil {
 		t.Fatal(err)
 	}
