@@ -155,6 +155,8 @@ func assertMessage(
 	expectedSubject,
 	expectedBody string,
 ) {
+	t.Helper()
+
 	var (
 		gi *GitInfo
 		ok bool
@@ -165,11 +167,11 @@ func assertMessage(
 	}
 
 	if gi.Subject != expectedSubject {
-		t.Error("Incorrect commit subject. Got", gi.Subject)
+		t.Fatalf("Incorrect commit subject. Expected:\n%q\nGot:\n%q", expectedSubject, gi.Subject)
 	}
 
 	if gi.Body != expectedBody {
-		t.Error("Incorrect commit body. Got", gi.Body)
+		t.Fatalf("Incorrect commit body. Expected:\n%q\nGot:\n%q", expectedBody, gi.Body)
 	}
 }
 
