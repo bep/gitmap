@@ -113,6 +113,67 @@ func assertFile(
 	}
 }
 
+func TestCommitMessage(t *testing.T) {
+	var (
+		gm  GitMap
+		gr  *GitRepo
+		err error
+	)
+
+	if gr, err = Map(repository, "HEAD"); err != nil {
+		t.Fatal(err)
+	}
+
+	gm = gr.Files
+
+	assertMessage(
+		t, gm,
+		"testfiles/d1/d1.txt",
+		"Change the test files",
+		"To trigger a test variant.",
+	)
+
+	assertMessage(
+		t, gm,
+		"testfiles/r3.txt",
+		"Add test file for commit body",
+		"- This is a multi-line\n- commit body",
+	)
+
+	assertMessage(
+		t, gm,
+		"testfiles/amended.txt",
+		"Add testfile with different author/commit date",
+		"",
+	)
+}
+
+func assertMessage(
+	t *testing.T,
+	gm GitMap,
+	filename,
+	expectedSubject,
+	expectedBody string,
+) {
+	var (
+		gi *GitInfo
+		ok bool
+	)
+
+	if gi, ok = gm[filename]; !ok {
+		t.Fatal(filename)
+	}
+
+	if gi.Subject != expectedSubject {
+		t.Error("Incorrect commit subject. Got", gi.Subject)
+	}
+
+	if gi.Body != expectedBody {
+		t.Error("Incorrect commit body. Got", gi.Body)
+	}
+
+}
+
 func TestActiveRevision(t *testing.T) {
 	var (
 		gm  GitMap
@@ -172,7 +233,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	s := string(b)
 
-	if s != `{"hash":"0b830e458446fdb774b1688af9b402acf388d6ab","abbreviatedHash":"0b830e4","subject":"Add some more to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-22T21:40:27+02:00","commitDate":"2016-07-22T21:40:27+02:00"}` {
+	if s != `{"hash":"0b830e458446fdb774b1688af9b402acf388d6ab","abbreviatedHash":"0b830e4","subject":"Add some more to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-22T21:40:27+02:00","commitDate":"2016-07-22T21:40:27+02:00","body":""}` {
 		t.Errorf("JSON marshal error: \n%s", s)
 	}
 }

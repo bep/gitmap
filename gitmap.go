@@ -46,6 +46,7 @@ type GitInfo struct {
 	AuthorEmail     string    `json:"authorEmail"`     // The author email address, respecting .mailmap
 	AuthorDate      time.Time `json:"authorDate"`      // The author date
 	CommitDate      time.Time `json:"commitDate"`      // The commit date
+	Body            string    `json:"body"`            // The commit message body
 }
 
 // Map creates a GitRepo with a file map from the given repository path and revision.
@@ -68,7 +69,7 @@ func Map(repository, revision string) (*GitRepo, error) {
 	topLevelPath := filepath.ToSlash(filepath.Join(absRepoPath, cdUp))
 
 	gitLogArgs := strings.Fields(fmt.Sprintf(
-		`--name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai%%x1f%%ci %s`,
+		`--name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai%%x1f%%ci%%x1f%%b%%x1d %s`,
 		revision,
 	))
 
@@ -84,13 +85,13 @@ func Map(repository, revision string) (*GitRepo, error) {
 	entries := strings.Split(entriesStr, "\x1e")
 
 	for _, e := range entries {
-		lines := strings.Split(e, "\n")
+		lines := strings.Split(e, "\x1d")
 		gitInfo, err := toGitInfo(lines[0])
 		if err != nil {
 			return nil, err
 		}
-
-		for _, filename := range lines[1:] {
+		filenames := strings.Split(lines[1], "\n")
+		for _, filename := range filenames {
 			filename := strings.TrimSpace(filename)
 			if filename == "" {
 				continue
@@ -121,6 +122,9 @@ func git(args ...string) ([]byte, error) {
 
 func toGitInfo(entry string) (*GitInfo, error) {
 	items := strings.Split(entry, "\x1f")
+	if len(items) == 7 {
+		items = append(items, "")
+	}
 	authorDate, err := time.Parse("2006-01-02 15:04:05 -0700", items[5])
 	if err != nil {
 		return nil, err
@@ -138,6 +142,7 @@ func toGitInfo(entry string) (*GitInfo, error) {
 		AuthorEmail:     items[4],
 		AuthorDate:      authorDate,
 		CommitDate:      commitDate,
+		Body:            strings.TrimSpace(items[7]),
 	}, nil
 }
 
