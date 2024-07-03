@@ -126,23 +126,52 @@ func TestCommitMessage(t *testing.T) {
 
 	gm = gr.Files
 
-	// Test Subject and Body
+	assertMessage(
+		t, gm,
+		"testfiles/d1/d1.txt",
+		"Change the test files",
+		"To trigger a test variant.",
+	)
+
+	assertMessage(
+		t, gm,
+		"testfiles/r3.txt",
+		"Add test file for commit body",
+		"- This is a multi-line\n- commit body",
+	)
+
+	assertMessage(
+		t, gm,
+		"testfiles/amended.txt",
+		"Add testfile with different author/commit date",
+		"",
+	)
+}
+
+func assertMessage(
+	t *testing.T,
+	gm GitMap,
+	filename,
+	expectedSubject,
+	expectedBody string,
+) {
 	var (
 		gi *GitInfo
 		ok bool
 	)
-	filename := "testfiles/d1/d1.txt"
+
 	if gi, ok = gm[filename]; !ok {
 		t.Fatal(filename)
 	}
 
-	if gi.Subject != "Change the test files" {
-		t.Error("Incorrect subject. Got", gi.Subject)
+	if gi.Subject != expectedSubject {
+		t.Error("Incorrect commit subject. Got", gi.Subject)
 	}
 
-	if gi.Body != "To trigger a test variant." {
+	if gi.Body != expectedBody {
 		t.Error("Incorrect commit body. Got", gi.Body)
 	}
+
 }
 
 func TestActiveRevision(t *testing.T) {
