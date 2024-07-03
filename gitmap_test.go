@@ -136,8 +136,8 @@ func TestCommitMessage(t *testing.T) {
 	assertMessage(
 		t, gm,
 		"testfiles/r3.txt",
-		"Add test file for commit body",
-		"- This is a multi-line\n- commit body",
+		"Edit testfiles/r3.txt",
+		"Multiline\n\ncommit body.",
 	)
 
 	assertMessage(
