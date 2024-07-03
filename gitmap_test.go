@@ -171,7 +171,6 @@ func assertMessage(
 	if gi.Body != expectedBody {
 		t.Error("Incorrect commit body. Got", gi.Body)
 	}
-
 }
 
 func TestActiveRevision(t *testing.T) {
@@ -201,7 +200,7 @@ func TestGitExecutableNotFound(t *testing.T) {
 	gitExec = "thisShouldHopefullyNotExistOnPath"
 	gi, err := Map(repository, revision)
 
-	if err != GitNotFound || gi != nil {
+	if err != ErrGitNotFound || gi != nil {
 		t.Fatal("Invalid error handling")
 	}
 }

@@ -19,7 +19,7 @@ var (
 	// will be modified during tests
 	gitExec string
 
-	GitNotFound = errors.New("Git executable not found in $PATH")
+	ErrGitNotFound = errors.New("git executable not found in $PATH")
 )
 
 type GitRepo struct {
@@ -75,7 +75,6 @@ func Map(repository, revision string) (*GitRepo, error) {
 
 	gitLogArgs = append([]string{"-c", "diff.renames=0", "-c", "log.showSignature=0", "-C", repository, "log"}, gitLogArgs...)
 	out, err = git(gitLogArgs...)
-
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +109,7 @@ func git(args ...string) ([]byte, error) {
 	if err != nil {
 		if ee, ok := err.(*exec.Error); ok {
 			if ee.Err == exec.ErrNotFound {
-				return nil, GitNotFound
+				return nil, ErrGitNotFound
 			}
 		}
 
