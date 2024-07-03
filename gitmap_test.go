@@ -113,6 +113,38 @@ func assertFile(
 	}
 }
 
+func TestCommitMessage(t *testing.T) {
+	var (
+		gm  GitMap
+		gr  *GitRepo
+		err error
+	)
+
+	if gr, err = Map(repository, "HEAD"); err != nil {
+		t.Fatal(err)
+	}
+
+	gm = gr.Files
+
+	// Test Subject and Body
+	var (
+		gi *GitInfo
+		ok bool
+	)
+	filename := "testfiles/d1/d1.txt"
+	if gi, ok = gm[filename]; !ok {
+		t.Fatal(filename)
+	}
+
+	if gi.Subject != "Change the test files" {
+		t.Error("Incorrect subject. Got", gi.Subject)
+	}
+
+	if gi.Body != "To trigger a test variant." {
+		t.Error("Incorrect commit body. Got", gi.Body)
+	}
+}
+
 func TestActiveRevision(t *testing.T) {
 	var (
 		gm  GitMap
@@ -172,7 +204,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	s := string(b)
 
-	if s != `{"hash":"0b830e458446fdb774b1688af9b402acf388d6ab","abbreviatedHash":"0b830e4","subject":"Add some more to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-22T21:40:27+02:00","commitDate":"2016-07-22T21:40:27+02:00"}` {
+	if s != `{"hash":"0b830e458446fdb774b1688af9b402acf388d6ab","abbreviatedHash":"0b830e4","subject":"Add some more to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-22T21:40:27+02:00","commitDate":"2016-07-22T21:40:27+02:00","body":""}` {
 		t.Errorf("JSON marshal error: \n%s", s)
 	}
 }
