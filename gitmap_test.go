@@ -31,7 +31,7 @@ func TestMap(t *testing.T) {
 		err error
 	)
 
-	if gr, err = Map(repository, revision); err != nil {
+	if gr, err = Map(Options{Repository: repository, Revision: revision}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -120,7 +120,7 @@ func TestCommitMessage(t *testing.T) {
 		err error
 	)
 
-	if gr, err = Map(repository, "HEAD"); err != nil {
+	if gr, err = Map(Options{Repository: repository, Revision: "HEAD"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -182,7 +182,7 @@ func TestActiveRevision(t *testing.T) {
 		err error
 	)
 
-	if gr, err = Map(repository, "HEAD"); err != nil {
+	if gr, err = Map(Options{Repository: repository, Revision: "HEAD"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -200,7 +200,7 @@ func TestActiveRevision(t *testing.T) {
 func TestGitExecutableNotFound(t *testing.T) {
 	defer initDefaults()
 	gitExec = "thisShouldHopefullyNotExistOnPath"
-	gi, err := Map(repository, revision)
+	gi, err := Map(Options{Repository: repository, Revision: revision})
 
 	if err != ErrGitNotFound || gi != nil {
 		t.Fatal("Invalid error handling")
@@ -217,7 +217,7 @@ func TestEncodeJSON(t *testing.T) {
 		filename = "README.md"
 	)
 
-	if gr, err = Map(repository, revision); err != nil {
+	if gr, err = Map(Options{Repository: repository, Revision: revision}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -240,7 +240,7 @@ func TestEncodeJSON(t *testing.T) {
 }
 
 func TestGitRevisionNotFound(t *testing.T) {
-	gi, err := Map(repository, "adfasdfasdf")
+	gi, err := Map(Options{Repository: repository, Revision: "adfasdfasdf"})
 
 	// TODO(bep) improve error handling.
 	if err == nil || gi != nil {
@@ -249,7 +249,7 @@ func TestGitRevisionNotFound(t *testing.T) {
 }
 
 func TestGitRepoNotFound(t *testing.T) {
-	gi, err := Map("adfasdfasdf", revision)
+	gi, err := Map(Options{Repository: "adfasdfasdf", Revision: revision})
 
 	// TODO(bep) improve error handling.
 	if err == nil || gi != nil {
@@ -263,7 +263,7 @@ func TestTopLevelAbsPath(t *testing.T) {
 		err error
 	)
 
-	if gr, err = Map(repository, revision); err != nil {
+	if gr, err = Map(Options{Repository: repository, Revision: revision}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -276,7 +276,7 @@ func TestTopLevelAbsPath(t *testing.T) {
 
 func BenchmarkMap(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		_, err := Map(repository, revision)
+		_, err := Map(Options{Repository: repository, Revision: revision})
 		if err != nil {
 			b.Fatalf("Got error: %s", err)
 		}
