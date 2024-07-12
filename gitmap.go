@@ -51,12 +51,19 @@ type GitInfo struct {
 
 // Options for the Map function
 type Options struct {
-	Repository string // Path to the repository to map
-	Revision   string // Use blank or HEAD for the currently active revision
+	Repository        string // Path to the repository to map
+	Revision          string // Use blank or HEAD for the currently active revision
+	GetGitCommandFunc func(args ...string) *exec.Cmd
 }
 
 // Map creates a GitRepo with a file map from the given options.
 func Map(opts Options) (*GitRepo, error) {
+	if opts.GetGitCommandFunc == nil {
+		opts.GetGitCommandFunc = func(args ...string) *exec.Cmd {
+			return exec.Command(gitExec, args...)
+		}
+	}
+
 	m := make(GitMap)
 
 	// First get the top level repo path
@@ -65,7 +72,7 @@ func Map(opts Options) (*GitRepo, error) {
 		return nil, err
 	}
 
-	out, err := git("-C", opts.Repository, "rev-parse", "--show-cdup")
+	out, err := git(opts, "-C", opts.Repository, "rev-parse", "--show-cdup")
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +86,7 @@ func Map(opts Options) (*GitRepo, error) {
 	))
 
 	gitLogArgs = append([]string{"-c", "diff.renames=0", "-c", "log.showSignature=0", "-C", opts.Repository, "log"}, gitLogArgs...)
-	out, err = git(gitLogArgs...)
+	out, err = git(opts, gitLogArgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +116,8 @@ func Map(opts Options) (*GitRepo, error) {
 	return &GitRepo{Files: m, TopLevelAbsPath: topLevelPath}, nil
 }
 
-func git(args ...string) ([]byte, error) {
-	out, err := exec.Command(gitExec, args...).CombinedOutput()
+func git(opts Options, args ...string) ([]byte, error) {
+	out, err := opts.GetGitCommandFunc(args...).CombinedOutput()
 	if err != nil {
 		if ee, ok := err.(*exec.Error); ok {
 			if ee.Err == exec.ErrNotFound {
