@@ -49,18 +49,30 @@ type GitInfo struct {
 	Body            string    `json:"body"`            // The commit message body
 }
 
-// Map creates a GitRepo with a file map from the given repository path and revision.
-// Use blank or HEAD as revision for the currently active revision.
-func Map(repository, revision string) (*GitRepo, error) {
+// Options for the Map function
+type Options struct {
+	Repository        string // Path to the repository to map
+	Revision          string // Use blank or HEAD for the currently active revision
+	GetGitCommandFunc func(args ...string) *exec.Cmd
+}
+
+// Map creates a GitRepo with a file map from the given options.
+func Map(opts Options) (*GitRepo, error) {
+	if opts.GetGitCommandFunc == nil {
+		opts.GetGitCommandFunc = func(args ...string) *exec.Cmd {
+			return exec.Command(gitExec, args...)
+		}
+	}
+
 	m := make(GitMap)
 
 	// First get the top level repo path
-	absRepoPath, err := filepath.Abs(repository)
+	absRepoPath, err := filepath.Abs(opts.Repository)
 	if err != nil {
 		return nil, err
 	}
 
-	out, err := git("-C", repository, "rev-parse", "--show-cdup")
+	out, err := git(opts, "-C", opts.Repository, "rev-parse", "--show-cdup")
 	if err != nil {
 		return nil, err
 	}
@@ -70,11 +82,11 @@ func Map(repository, revision string) (*GitRepo, error) {
 
 	gitLogArgs := strings.Fields(fmt.Sprintf(
 		`--name-only --no-merges --format=format:%%x1e%%H%%x1f%%h%%x1f%%s%%x1f%%aN%%x1f%%aE%%x1f%%ai%%x1f%%ci%%x1f%%b%%x1d %s`,
-		revision,
+		opts.Revision,
 	))
 
-	gitLogArgs = append([]string{"-c", "diff.renames=0", "-c", "log.showSignature=0", "-C", repository, "log"}, gitLogArgs...)
-	out, err = git(gitLogArgs...)
+	gitLogArgs = append([]string{"-c", "diff.renames=0", "-c", "log.showSignature=0", "-C", opts.Repository, "log"}, gitLogArgs...)
+	out, err = git(opts, gitLogArgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +116,8 @@ func Map(repository, revision string) (*GitRepo, error) {
 	return &GitRepo{Files: m, TopLevelAbsPath: topLevelPath}, nil
 }
 
-func git(args ...string) ([]byte, error) {
-	out, err := exec.Command(gitExec, args...).CombinedOutput()
+func git(opts Options, args ...string) ([]byte, error) {
+	out, err := opts.GetGitCommandFunc(args...).CombinedOutput()
 	if err != nil {
 		if ee, ok := err.(*exec.Error); ok {
 			if ee.Err == exec.ErrNotFound {
