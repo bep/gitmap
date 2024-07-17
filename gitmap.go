@@ -1,4 +1,4 @@
-// Copyright © 2016-present Bjørn Erik Pedersen <bjorn.erik.pedersen@gmail.com>.
+// Copyright 2024 Bjørn Erik Pedersen <bjorn.erik.pedersen@gmail.com>.
 //
 // Use of this source code is governed by an MIT-style
 // license that can be found in the LICENSE file.
@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -49,18 +50,27 @@ type GitInfo struct {
 	Body            string    `json:"body"`            // The commit message body
 }
 
+// Runner is an interface for running Git commands,
+// as implemented buy *exec.Cmd.
+type Runner interface {
+	Run() error
+}
+
 // Options for the Map function
 type Options struct {
 	Repository        string // Path to the repository to map
 	Revision          string // Use blank or HEAD for the currently active revision
-	GetGitCommandFunc func(args ...string) *exec.Cmd
+	GetGitCommandFunc func(stdout, stderr io.Writer, args ...string) (Runner, error)
 }
 
 // Map creates a GitRepo with a file map from the given options.
 func Map(opts Options) (*GitRepo, error) {
 	if opts.GetGitCommandFunc == nil {
-		opts.GetGitCommandFunc = func(args ...string) *exec.Cmd {
-			return exec.Command(gitExec, args...)
+		opts.GetGitCommandFunc = func(stdout, stderr io.Writer, args ...string) (Runner, error) {
+			cmd := exec.Command(gitExec, args...)
+			cmd.Stdout = stdout
+			cmd.Stderr = stderr
+			return cmd, nil
 		}
 	}
 
@@ -91,8 +101,7 @@ func Map(opts Options) (*GitRepo, error) {
 		return nil, err
 	}
 
-	entriesStr := string(out)
-	entriesStr = strings.Trim(entriesStr, "\n\x1e'")
+	entriesStr := strings.Trim(out, "\n\x1e'")
 	entries := strings.Split(entriesStr, "\x1e")
 
 	for _, e := range entries {
@@ -116,19 +125,23 @@ func Map(opts Options) (*GitRepo, error) {
 	return &GitRepo{Files: m, TopLevelAbsPath: topLevelPath}, nil
 }
 
-func git(opts Options, args ...string) ([]byte, error) {
-	out, err := opts.GetGitCommandFunc(args...).CombinedOutput()
+func git(opts Options, args ...string) (string, error) {
+	var outBuff bytes.Buffer
+	var errBuff bytes.Buffer
+	cmd, err := opts.GetGitCommandFunc(&outBuff, &errBuff, args...)
+	if err != nil {
+		return "", err
+	}
+	err = cmd.Run()
 	if err != nil {
 		if ee, ok := err.(*exec.Error); ok {
 			if ee.Err == exec.ErrNotFound {
-				return nil, ErrGitNotFound
+				return "", ErrGitNotFound
 			}
 		}
-
-		return nil, errors.New(string(bytes.TrimSpace(out)))
+		return "", errors.New(strings.TrimSpace(errBuff.String()))
 	}
-
-	return out, nil
+	return outBuff.String(), nil
 }
 
 func toGitInfo(entry string) (*GitInfo, error) {
