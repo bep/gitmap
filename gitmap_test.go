@@ -12,6 +12,13 @@ import (
 	"testing"
 )
 
+type expectedGitInfo struct {
+	abbreviatedHash string
+	hash            string
+	authorDate      string
+	commitDate      string
+}
+
 var (
 	revision   = "7d46b653c9674510d808815c4c92c7dc10bedc16"
 	repository string
@@ -41,47 +48,65 @@ func TestMap(t *testing.T) {
 		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 9)
 	}
 
-	assertFile(t, gm,
-		"testfiles/d1/d1.txt",
-		"39120eb",
-		"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
-		"2016-07-20",
-		"2016-07-20",
+	assertFile(t, gm, "testfiles/d1/d1.txt",
+		expectedGitInfo{
+			"39120eb",
+			"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
+			"2016-07-20",
+			"2016-07-20",
+		},
+		expectedGitInfo{
+			"4d9ad73",
+			"4d9ad733fa40310607ebe9f700d59dcac93ace89",
+			"2016-07-20",
+			"2016-07-20",
+		},
+		expectedGitInfo{
+			"9d1dc47",
+			"9d1dc478eef267829831226d913a3ca249c489d4",
+			"2016-07-19",
+			"2016-07-19",
+		},
 	)
 
-	assertFile(t, gm,
-		"testfiles/d2/d2.txt",
-		"39120eb",
-		"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
-		"2016-07-20",
-		"2016-07-20",
+	assertFile(t, gm, "testfiles/d2/d2.txt",
+		expectedGitInfo{
+			"39120eb",
+			"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
+			"2016-07-20",
+			"2016-07-20",
+		}, expectedGitInfo{
+			"9d1dc47",
+			"9d1dc478eef267829831226d913a3ca249c489d4",
+			"2016-07-19",
+			"2016-07-19",
+		},
 	)
 
-	assertFile(t, gm,
-		"testfiles/amended.txt",
-		"7d46b65",
-		"7d46b653c9674510d808815c4c92c7dc10bedc16",
-		"2019-05-23",
-		"2019-05-25",
+	assertFile(t, gm, "testfiles/amended.txt",
+		expectedGitInfo{
+			"7d46b65",
+			"7d46b653c9674510d808815c4c92c7dc10bedc16",
+			"2019-05-23",
+			"2019-05-25",
+		},
 	)
 
-	assertFile(t, gm,
-		"README.md",
-		"0b830e4",
-		"0b830e458446fdb774b1688af9b402acf388d6ab",
-		"2016-07-22",
-		"2016-07-22",
+	assertFile(t, gm, "README.md",
+		expectedGitInfo{
+			"0b830e4",
+			"0b830e458446fdb774b1688af9b402acf388d6ab",
+			"2016-07-22",
+			"2016-07-22",
+		},
 	)
 }
 
 func assertFile(
 	t *testing.T,
 	gm GitMap,
-	filename,
-	expectedAbbreviatedHash,
-	expectedHash,
-	expectedAuthorDate,
-	expectedCommitDate string,
+	filename string,
+	expected ...expectedGitInfo,
 ) {
 	var (
 		gi *GitInfo
@@ -92,6 +117,32 @@ func assertFile(
 		t.Fatal(filename)
 	}
 
+	for i, e := range expected {
+		if i > 0 {
+			gi = gi.Ancestor
+			if gi == nil {
+				t.Fatalf("Wrong number of ancestor commits, got %d, expected at least %d", i-1, i)
+			}
+		}
+		assertGitInfo(t, *gi,
+			filename,
+			e.abbreviatedHash,
+			e.hash,
+			e.authorDate,
+			e.commitDate,
+		)
+	}
+}
+
+func assertGitInfo(
+	t *testing.T,
+	gi GitInfo,
+	filename string,
+	expectedAbbreviatedHash,
+	expectedHash,
+	expectedAuthorDate,
+	expectedCommitDate string,
+) {
 	if gi.AbbreviatedHash != expectedAbbreviatedHash || gi.Hash != expectedHash {
 		t.Error("Invalid tree hash, file", filename, "abbreviated:", gi.AbbreviatedHash, "full:", gi.Hash, gi.Subject)
 	}
@@ -215,6 +266,9 @@ func TestEncodeJSON(t *testing.T) {
 		err      error
 		ok       bool
 		filename = "README.md"
+		// Commit ref for README.md with 1 ancestor commit,
+		// so we don't have to write a *lot* of JSON below
+		revision = "1cb4bde80efbcc203ad14f8869c1fcca6ec830da"
 	)
 
 	if gr, err = Map(Options{Repository: repository, Revision: revision}); err != nil {
@@ -234,7 +288,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	s := string(b)
 
-	if s != `{"hash":"0b830e458446fdb774b1688af9b402acf388d6ab","abbreviatedHash":"0b830e4","subject":"Add some more to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-22T21:40:27+02:00","commitDate":"2016-07-22T21:40:27+02:00","body":""}` {
+	if s != `{"hash":"1cb4bde80efbcc203ad14f8869c1fcca6ec830da","abbreviatedHash":"1cb4bde","subject":"Add some badges to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T00:11:54+02:00","commitDate":"2016-07-20T00:11:54+02:00","body":"","ancestor":{"hash":"527cb5db32c76a269e444bb0de4cc22b574f0366","abbreviatedHash":"527cb5d","subject":"Create README.md","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-19T21:21:03+02:00","commitDate":"2016-07-19T21:21:03+02:00","body":"","ancestor":null}}` {
 		t.Errorf("JSON marshal error: \n%s", s)
 	}
 }
