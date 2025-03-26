@@ -48,6 +48,7 @@ type GitInfo struct {
 	AuthorDate      time.Time `json:"authorDate"`      // The author date
 	CommitDate      time.Time `json:"commitDate"`      // The commit date
 	Body            string    `json:"body"`            // The commit message body
+	Ancestor        *GitInfo  `json:"ancestor"`        // The file-filtered ancestor commit, if any
 }
 
 // Runner is an interface for running Git commands,
@@ -75,6 +76,7 @@ func Map(opts Options) (*GitRepo, error) {
 	}
 
 	m := make(GitMap)
+	a := make(GitMap)
 
 	// First get the top level repo path
 	absRepoPath, err := filepath.Abs(opts.Repository)
@@ -116,8 +118,19 @@ func Map(opts Options) (*GitRepo, error) {
 			if filename == "" {
 				continue
 			}
-			if _, ok := m[filename]; !ok {
-				m[filename] = gitInfo
+			// Cannot reuse because each GitInfo object has its own ancestor
+			// gitInfo.Ancestor is always nil at this point, so we're copying
+			gitInfoCopy := *gitInfo
+
+			if rootInfo, ok := m[filename]; !ok {
+				m[filename] = &gitInfoCopy
+			} else {
+				var ancInfo *GitInfo
+				if ancInfo, ok = a[filename]; !ok {
+					ancInfo = rootInfo
+				}
+				ancInfo.Ancestor = &gitInfoCopy
+				a[filename] = ancInfo.Ancestor
 			}
 		}
 	}
