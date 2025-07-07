@@ -48,7 +48,16 @@ type GitInfo struct {
 	AuthorDate      time.Time `json:"authorDate"`      // The author date
 	CommitDate      time.Time `json:"commitDate"`      // The commit date
 	Body            string    `json:"body"`            // The commit message body
-	Ancestor        *GitInfo  `json:"ancestor"`        // The file-filtered ancestor commit, if any
+	Parent          *GitInfo  `json:"parent"`          // The file-filtered ancestor commit, if any
+}
+
+// Ancestors returns a slice of GitInfo objects representing the ancestors.
+func (g *GitInfo) Ancestors() []*GitInfo {
+	var ancestors []*GitInfo
+	for parent := g.Parent; parent != nil; parent = parent.Parent {
+		ancestors = append(ancestors, parent)
+	}
+	return ancestors
 }
 
 // Runner is an interface for running Git commands,
@@ -129,8 +138,8 @@ func Map(opts Options) (*GitRepo, error) {
 				if ancInfo, ok = a[filename]; !ok {
 					ancInfo = rootInfo
 				}
-				ancInfo.Ancestor = &gitInfoCopy
-				a[filename] = ancInfo.Ancestor
+				ancInfo.Parent = &gitInfoCopy
+				a[filename] = ancInfo.Parent
 			}
 		}
 	}

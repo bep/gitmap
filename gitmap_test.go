@@ -119,10 +119,14 @@ func assertFile(
 
 	for i, e := range expected {
 		if i > 0 {
-			gi = gi.Ancestor
+			if len(gi.Ancestors()) == 0 {
+				t.Fatalf("Expected at least 1 ancestor commit for %s, but got none", filename)
+			}
+			gi = gi.Parent
 			if gi == nil {
 				t.Fatalf("Wrong number of ancestor commits, got %d, expected at least %d", i-1, i)
 			}
+
 		}
 		assertGitInfo(t, *gi,
 			filename,
@@ -288,7 +292,7 @@ func TestEncodeJSON(t *testing.T) {
 
 	s := string(b)
 
-	if s != `{"hash":"1cb4bde80efbcc203ad14f8869c1fcca6ec830da","abbreviatedHash":"1cb4bde","subject":"Add some badges to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T00:11:54+02:00","commitDate":"2016-07-20T00:11:54+02:00","body":"","ancestor":{"hash":"527cb5db32c76a269e444bb0de4cc22b574f0366","abbreviatedHash":"527cb5d","subject":"Create README.md","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-19T21:21:03+02:00","commitDate":"2016-07-19T21:21:03+02:00","body":"","ancestor":null}}` {
+	if s != `{"hash":"1cb4bde80efbcc203ad14f8869c1fcca6ec830da","abbreviatedHash":"1cb4bde","subject":"Add some badges to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T00:11:54+02:00","commitDate":"2016-07-20T00:11:54+02:00","body":"","parent":{"hash":"527cb5db32c76a269e444bb0de4cc22b574f0366","abbreviatedHash":"527cb5d","subject":"Create README.md","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-19T21:21:03+02:00","commitDate":"2016-07-19T21:21:03+02:00","body":"","parent":null}}` {
 		t.Errorf("JSON marshal error: \n%s", s)
 	}
 }
