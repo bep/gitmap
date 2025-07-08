@@ -48,7 +48,7 @@ type GitInfo struct {
 	AuthorDate      time.Time `json:"authorDate"`      // The author date
 	CommitDate      time.Time `json:"commitDate"`      // The commit date
 	Body            string    `json:"body"`            // The commit message body
-	Parent          *GitInfo  `json:"parent"`          // The file-filtered ancestor commit, if any
+	Parent          *GitInfo  `json:"-"`               // The file-filtered ancestor commit, if any
 }
 
 // Ancestors returns a slice of GitInfo objects representing the ancestors.

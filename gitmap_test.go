@@ -10,6 +10,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	qt "github.com/frankban/quicktest"
 )
 
 type expectedGitInfo struct {
@@ -32,23 +34,16 @@ func init() {
 }
 
 func TestMap(t *testing.T) {
-	var (
-		gm  GitMap
-		gr  *GitRepo
-		err error
-	)
+	c := qt.New(t)
 
-	if gr, err = Map(Options{Repository: repository, Revision: revision}); err != nil {
-		t.Fatal(err)
-	}
+	gr, err := Map(Options{Repository: repository, Revision: revision})
+	c.Assert(err, qt.IsNil)
 
-	gm = gr.Files
+	gm := gr.Files
 
-	if len(gm) != 11 {
-		t.Fatalf("Wrong number of files, got %d, expected %d", len(gm), 9)
-	}
+	c.Assert(len(gm), qt.Equals, 11)
 
-	assertFile(t, gm, "testfiles/d1/d1.txt",
+	assertFile(c, gm, "testfiles/d1/d1.txt",
 		expectedGitInfo{
 			"39120eb",
 			"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
@@ -69,7 +64,7 @@ func TestMap(t *testing.T) {
 		},
 	)
 
-	assertFile(t, gm, "testfiles/d2/d2.txt",
+	assertFile(c, gm, "testfiles/d2/d2.txt",
 		expectedGitInfo{
 			"39120eb",
 			"39120eb28a2f8a0312f9b45f91b6abb687b7fd3c",
@@ -83,7 +78,7 @@ func TestMap(t *testing.T) {
 		},
 	)
 
-	assertFile(t, gm, "testfiles/amended.txt",
+	assertFile(c, gm, "testfiles/amended.txt",
 		expectedGitInfo{
 			"7d46b65",
 			"7d46b653c9674510d808815c4c92c7dc10bedc16",
@@ -92,7 +87,7 @@ func TestMap(t *testing.T) {
 		},
 	)
 
-	assertFile(t, gm, "README.md",
+	assertFile(c, gm, "README.md",
 		expectedGitInfo{
 			"0b830e4",
 			"0b830e458446fdb774b1688af9b402acf388d6ab",
@@ -103,7 +98,7 @@ func TestMap(t *testing.T) {
 }
 
 func assertFile(
-	t *testing.T,
+	t *qt.C,
 	gm GitMap,
 	filename string,
 	expected ...expectedGitInfo,
@@ -126,7 +121,6 @@ func assertFile(
 			if gi == nil {
 				t.Fatalf("Wrong number of ancestor commits, got %d, expected at least %d", i-1, i)
 			}
-
 		}
 		assertGitInfo(t, *gi,
 			filename,
@@ -139,7 +133,7 @@ func assertFile(
 }
 
 func assertGitInfo(
-	t *testing.T,
+	t *qt.C,
 	gi GitInfo,
 	filename string,
 	expectedAbbreviatedHash,
@@ -263,38 +257,20 @@ func TestGitExecutableNotFound(t *testing.T) {
 }
 
 func TestEncodeJSON(t *testing.T) {
-	var (
-		gm       GitMap
-		gr       *GitRepo
-		gi       *GitInfo
-		err      error
-		ok       bool
+	const (
 		filename = "README.md"
-		// Commit ref for README.md with 1 ancestor commit,
-		// so we don't have to write a *lot* of JSON below
 		revision = "1cb4bde80efbcc203ad14f8869c1fcca6ec830da"
 	)
 
-	if gr, err = Map(Options{Repository: repository, Revision: revision}); err != nil {
-		t.Fatal(err)
-	}
+	c := qt.New(t)
 
-	gm = gr.Files
-
-	if gi, ok = gm[filename]; !ok {
-		t.Fatal(filename)
-	}
+	gi := getOne(c, revision, filename)
 
 	b, err := json.Marshal(&gi)
-	if err != nil {
-		t.Fatal(err)
-	}
+	c.Assert(err, qt.IsNil)
 
 	s := string(b)
-
-	if s != `{"hash":"1cb4bde80efbcc203ad14f8869c1fcca6ec830da","abbreviatedHash":"1cb4bde","subject":"Add some badges to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T00:11:54+02:00","commitDate":"2016-07-20T00:11:54+02:00","body":"","parent":{"hash":"527cb5db32c76a269e444bb0de4cc22b574f0366","abbreviatedHash":"527cb5d","subject":"Create README.md","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-19T21:21:03+02:00","commitDate":"2016-07-19T21:21:03+02:00","body":"","parent":null}}` {
-		t.Errorf("JSON marshal error: \n%s", s)
-	}
+	c.Assert(s, qt.Equals, `{"hash":"1cb4bde80efbcc203ad14f8869c1fcca6ec830da","abbreviatedHash":"1cb4bde","subject":"Add some badges to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T00:11:54+02:00","commitDate":"2016-07-20T00:11:54+02:00","body":""}`)
 }
 
 func TestGitRevisionNotFound(t *testing.T) {
@@ -339,4 +315,13 @@ func BenchmarkMap(b *testing.B) {
 			b.Fatalf("Got error: %s", err)
 		}
 	}
+}
+
+func getOne(c *qt.C, revision, filename string) *GitInfo {
+	c.Helper()
+	gr, err := Map(Options{Repository: repository, Revision: revision})
+	c.Assert(err, qt.IsNil)
+	gi, ok := gr.Files[filename]
+	c.Assert(ok, qt.IsTrue, qt.Commentf("File %s not found in GitMap", filename))
+	return gi
 }
