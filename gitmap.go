@@ -52,12 +52,23 @@ type GitInfo struct {
 }
 
 // Ancestors returns a slice of GitInfo objects representing the ancestors.
-func (g *GitInfo) Ancestors() []*GitInfo {
-	var ancestors []*GitInfo
+func (g *GitInfo) Ancestors() GitInfos {
+	var ancestors GitInfos
 	for parent := g.Parent; parent != nil; parent = parent.Parent {
 		ancestors = append(ancestors, parent)
 	}
 	return ancestors
+}
+
+type GitInfos []*GitInfo
+
+// Reverse creates a copy of the GitInfos slice in reverse order.
+func (g GitInfos) Reverse() GitInfos {
+	reversed := make(GitInfos, len(g))
+	for i, v := range g {
+		reversed[len(g)-1-i] = v
+	}
+	return reversed
 }
 
 // Runner is an interface for running Git commands,

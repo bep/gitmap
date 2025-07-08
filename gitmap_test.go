@@ -273,6 +273,31 @@ func TestEncodeJSON(t *testing.T) {
 	c.Assert(s, qt.Equals, `{"hash":"1cb4bde80efbcc203ad14f8869c1fcca6ec830da","abbreviatedHash":"1cb4bde","subject":"Add some badges to README","authorName":"Bjørn Erik Pedersen","authorEmail":"bjorn.erik.pedersen@gmail.com","authorDate":"2016-07-20T00:11:54+02:00","commitDate":"2016-07-20T00:11:54+02:00","body":""}`)
 }
 
+func TestAncestors(t *testing.T) {
+	const (
+		filename = "README.md"
+		revision = "HEAD"
+	)
+
+	c := qt.New(t)
+
+	gi := getOne(c, revision, filename)
+
+	ancestors := gi.Ancestors()
+	first := ancestors[0]
+	last := ancestors[len(ancestors)-1]
+	c.Assert(len(ancestors), qt.Equals, 5)
+	c.Assert(first.Subject, qt.Equals, "Add some more to README")
+	c.Assert(last.Subject, qt.Equals, "Create README.md")
+
+	reversed := ancestors.Reverse()
+	// Verify that the original slice is not modified.
+	c.Assert(ancestors[0].Subject, qt.Equals, first.Subject)
+	c.Assert(len(reversed), qt.Equals, 5)
+	c.Assert(reversed[0].Subject, qt.Equals, last.Subject)
+	c.Assert(reversed[len(reversed)-1].Subject, qt.Equals, first.Subject)
+}
+
 func TestGitRevisionNotFound(t *testing.T) {
 	gi, err := Map(Options{Repository: repository, Revision: "adfasdfasdf"})
 
