@@ -124,16 +124,16 @@ func Map(opts Options) (*GitRepo, error) {
 	}
 
 	entriesStr := strings.Trim(out, "\n\x1e'")
-	entries := strings.Split(entriesStr, "\x1e")
+	entries := strings.SplitSeq(entriesStr, "\x1e")
 
-	for _, e := range entries {
+	for e := range entries {
 		lines := strings.Split(e, "\x1d")
 		gitInfo, err := toGitInfo(lines[0])
 		if err != nil {
 			return nil, err
 		}
-		filenames := strings.Split(lines[1], "\n")
-		for _, filename := range filenames {
+		filenames := strings.SplitSeq(lines[1], "\n")
+		for filename := range filenames {
 			filename := strings.TrimSpace(filename)
 			if filename == "" {
 				continue
