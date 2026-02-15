@@ -1,6 +1,6 @@
 module github.com/bep/gitmap
 
-go 1.24
+go 1.25
 
 require github.com/frankban/quicktest v1.14.6
 
